@@ -12,34 +12,15 @@ import java.util.UUID;
 
 public interface NoteRepository extends JpaRepository<Note, UUID> {
 
-    Optional<Note> findByIdAndUserIdAndDeletedAtIsNull(UUID id, UUID userId);
-
-    /**
-     * Keyset pagination first page — index seek on (user_id, created_at DESC, id DESC).
-     */
-    @Query(value = """
-            SELECT * FROM notes
-            WHERE user_id = :userId
-              AND deleted_at IS NULL
-            ORDER BY created_at DESC, id DESC
-            LIMIT :limit
-            """, nativeQuery = true)
-    List<Note> findFirstPage(@Param("userId") UUID userId, @Param("limit") int limit);
-
-    /**
-     * Keyset pagination subsequent pages after a cursor position.
-     */
-    @Query(value = """
-            SELECT * FROM notes
-            WHERE user_id = :userId
-              AND deleted_at IS NULL
-              AND (created_at, id) < (:cursorCreatedAt, :cursorId::uuid)
-            ORDER BY created_at DESC, id DESC
-            LIMIT :limit
-            """, nativeQuery = true)
-    List<Note> findNextPage(
+    @Query("SELECT n FROM Note n WHERE n.userId = :userId " +
+           "AND (:cursor IS NULL OR n.createdAt < :cursor) " +
+           "ORDER BY n.createdAt DESC LIMIT :limit")
+    List<Note> findByUserIdWithKeyset(
             @Param("userId") UUID userId,
-            @Param("cursorCreatedAt") Instant cursorCreatedAt,
-            @Param("cursorId") String cursorId,
+            @Param("cursor") Instant cursor,
             @Param("limit") int limit);
+
+    Optional<Note> findByIdAndUserId(UUID id, UUID userId);
+
+    void deleteByIdAndUserId(UUID id, UUID userId);
 }

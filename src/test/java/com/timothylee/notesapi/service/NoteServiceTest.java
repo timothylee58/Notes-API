@@ -6,6 +6,5 @@ import org.junit.jupiter.api.Test;
 @Disabled("Stub — implementation in Phase 2")
 class NoteServiceTest {
 
-    @Test
-    void placeholder() {}
+    @Test void placeholder() {}
 }

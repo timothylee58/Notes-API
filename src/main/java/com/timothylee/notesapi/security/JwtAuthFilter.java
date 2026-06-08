@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -42,11 +44,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             final String jti = jwtUtil.extractJti(jwt);
             if (tokenBlacklistService.isBlacklisted(jti)) {
+                log.debug("Token jti={} is blacklisted", jti);
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            final String email = jwtUtil.extractUsername(jwt);
+            final String email = jwtUtil.extractEmail(jwt);
 
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -57,8 +60,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-        } catch (Exception ignored) {
-            // Invalid token — continue as unauthenticated
+        } catch (Exception e) {
+            log.debug("JWT validation failed: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);

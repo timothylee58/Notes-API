@@ -1,58 +1,56 @@
 package com.timothylee.notesapi.security;
 
+import com.timothylee.notesapi.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.Base64;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
+@Slf4j
 @Component
-@RequiredArgsConstructor
 public class JwtUtil {
 
-    @Value("${app.jwt.secret}")
+    @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${app.jwt.access-expiry-ms}")
-    private long accessExpiryMs;
+    @Value("${jwt.access-token-expiry-ms}")
+    private long accessTokenExpiryMs;
 
-    @Value("${app.jwt.refresh-expiry-ms}")
-    private long refreshExpiryMs;
+    @Value("${jwt.refresh-token-expiry-ms}")
+    private long refreshTokenExpiryMs;
 
-    public String generateAccessToken(UserDetails user) {
-        return buildToken(user, accessExpiryMs, Map.of("type", "access"));
+    public String generateAccessToken(User user) {
+        return buildToken(user, accessTokenExpiryMs, Map.of("type", "access"));
     }
 
-    public String generateRefreshToken(UserDetails user) {
-        return buildToken(user, refreshExpiryMs, Map.of("type", "refresh"));
+    public String generateRefreshToken(User user) {
+        return buildToken(user, refreshTokenExpiryMs, Map.of("type", "refresh"));
     }
 
-    private String buildToken(UserDetails user, long expiryMs, Map<String, Object> extraClaims) {
+    private String buildToken(User user, long expiryMs, Map<String, Object> extraClaims) {
         long now = System.currentTimeMillis();
         return Jwts.builder()
                 .claims(extraClaims)
-                .subject(user.getUsername())
+                .subject(user.getEmail())
                 .id(UUID.randomUUID().toString())
                 .issuedAt(new Date(now))
                 .expiration(new Date(now + expiryMs))
-                .signWith(signingKey())
+                .signWith(getSigningKey())
                 .compact();
     }
 
-    public boolean isTokenValid(String token, UserDetails user) {
-        return extractUsername(token).equals(user.getUsername()) && !isExpired(token);
-    }
-
-    public String extractUsername(String token) {
+    public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -60,12 +58,16 @@ public class JwtUtil {
         return extractClaim(token, Claims::getId);
     }
 
-    public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    public Instant extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration).toInstant();
     }
 
-    public boolean isExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        return extractEmail(token).equals(userDetails.getUsername()) && !isTokenExpired(token);
+    }
+
+    public boolean isTokenExpired(String token) {
+        return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> resolver) {
@@ -74,13 +76,17 @@ public class JwtUtil {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .verifyWith(signingKey())
+                .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
     }
 
-    private SecretKey signingKey() {
-        return Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public long getAccessTokenExpiryMs() {
+        return accessTokenExpiryMs;
     }
 }

@@ -12,12 +12,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/notes")
 @Tag(name = "Notes")
@@ -29,54 +31,45 @@ public class NoteController {
 
     @GetMapping
     @Operation(summary = "List notes (keyset paginated)")
-    public PagedResponse<NoteResponse> list(
+    public PagedResponse<NoteResponse> getNotes(
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit) {
-        return noteService.list(user, cursor, limit);
+        return noteService.getNotes(user.getId(), cursor, limit);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a note")
-    public NoteResponse create(
+    public NoteResponse createNote(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody NoteRequest request) {
-        return noteService.create(user, request);
+        return noteService.createNote(user.getId(), request);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get a note by id")
-    public NoteResponse getById(
+    public NoteResponse getNoteById(
             @AuthenticationPrincipal User user,
             @PathVariable UUID id) {
-        return noteService.getById(user, id);
+        return noteService.getNoteById(user.getId(), id);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Full update of a note")
-    public NoteResponse update(
+    @Operation(summary = "Update a note")
+    public NoteResponse updateNote(
             @AuthenticationPrincipal User user,
             @PathVariable UUID id,
             @Valid @RequestBody NoteRequest request) {
-        return noteService.update(user, id, request);
-    }
-
-    @PatchMapping("/{id}")
-    @Operation(summary = "Partial update of a note")
-    public NoteResponse patch(
-            @AuthenticationPrincipal User user,
-            @PathVariable UUID id,
-            @RequestBody NoteRequest request) {
-        return noteService.update(user, id, request);
+        return noteService.updateNote(user.getId(), id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Soft-delete a note")
-    public void delete(
+    @Operation(summary = "Delete a note")
+    public void deleteNote(
             @AuthenticationPrincipal User user,
             @PathVariable UUID id) {
-        noteService.delete(user, id);
+        noteService.deleteNote(user.getId(), id);
     }
 }

@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.notesapi</groupId>
+    <groupId>com.timothylee</groupId>
     <artifactId>notes-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>notes-api</name>

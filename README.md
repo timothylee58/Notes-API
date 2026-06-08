@@ -99,68 +99,70 @@ A production-grade RESTful Notes API built with **Spring Boot 3.x / Java 21**, d
 notes-api-springboot/
 ├── src/
 │   ├── main/
-│   │   ├── java/com/notesapi/
-│   │   │   ├── NotesApiApplication.java          # Entry point
+│   │   ├── java/com/timothylee/notesapi/
+│   │   │   ├── NotesApiApplication.java               # @SpringBootApplication entry
 │   │   │   ├── config/
-│   │   │   │   ├── SecurityConfig.java           # Filter chain, CORS, CSRF
-│   │   │   │   ├── RedisConfig.java              # RedisTemplate beans
-│   │   │   │   └── OpenApiConfig.java            # springdoc JWT bearer scheme
+│   │   │   │   ├── SecurityConfig.java                # Spring Security filter chain
+│   │   │   │   ├── RedisConfig.java                   # RedisTemplate bean
+│   │   │   │   └── OpenApiConfig.java                 # Springdoc / Swagger config
 │   │   │   ├── controller/
-│   │   │   │   ├── AuthController.java           # /api/v1/auth/**
-│   │   │   │   ├── NoteController.java           # /api/v1/notes/**
-│   │   │   │   └── UserController.java           # /api/v1/users/me
+│   │   │   │   ├── AuthController.java                # POST /auth/register, /login, /logout
+│   │   │   │   └── NoteController.java                # CRUD /api/v1/notes
+│   │   │   ├── service/
+│   │   │   │   ├── AuthService.java
+│   │   │   │   ├── NoteService.java
+│   │   │   │   └── TokenBlacklistService.java         # Redis-backed JWT invalidation
+│   │   │   ├── repository/
+│   │   │   │   ├── UserRepository.java                # JpaRepository<User, UUID>
+│   │   │   │   └── NoteRepository.java                # custom keyset pagination query
+│   │   │   ├── model/
+│   │   │   │   ├── User.java                          # @Entity
+│   │   │   │   └── Note.java                          # @Entity
 │   │   │   ├── dto/
 │   │   │   │   ├── request/
-│   │   │   │   │   ├── LoginRequest.java
 │   │   │   │   │   ├── RegisterRequest.java
-│   │   │   │   │   ├── NoteCreateRequest.java
-│   │   │   │   │   └── NoteUpdateRequest.java
+│   │   │   │   │   ├── LoginRequest.java
+│   │   │   │   │   └── NoteRequest.java
 │   │   │   │   └── response/
-│   │   │   │       ├── AuthResponse.java         # access + refresh tokens
+│   │   │   │       ├── AuthResponse.java
 │   │   │   │       ├── NoteResponse.java
-│   │   │   │       ├── PageResponse.java         # keyset cursor wrapper
-│   │   │   │       └── UserResponse.java
-│   │   │   ├── entity/
-│   │   │   │   ├── User.java                     # @Entity, Spring Security UserDetails
-│   │   │   │   └── Note.java                     # @Entity, soft-delete flag
-│   │   │   ├── exception/
-│   │   │   │   ├── GlobalExceptionHandler.java   # @ControllerAdvice, RFC 7807
-│   │   │   │   ├── NoteNotFoundException.java
-│   │   │   │   ├── UserAlreadyExistsException.java
-│   │   │   │   └── InvalidTokenException.java
-│   │   │   ├── repository/
-│   │   │   │   ├── UserRepository.java
-│   │   │   │   └── NoteRepository.java           # keyset pagination native query
+│   │   │   │       └── PagedResponse.java             # keyset pagination wrapper
 │   │   │   ├── security/
-│   │   │   │   ├── JwtService.java               # token generation & validation
-│   │   │   │   ├── JwtAuthenticationFilter.java  # OncePerRequestFilter
-│   │   │   │   └── UserDetailsServiceImpl.java
-│   │   │   └── service/
-│   │   │       ├── AuthService.java
-│   │   │       ├── NoteService.java
-│   │   │       ├── TokenBlacklistService.java    # Redis-backed logout
-│   │   │       └── RateLimitService.java         # sliding-window via Redis
+│   │   │   │   ├── JwtUtil.java                       # token sign / validate / extract
+│   │   │   │   ├── JwtAuthFilter.java                 # OncePerRequestFilter
+│   │   │   │   └── UserDetailsServiceImpl.java        # loads user from DB
+│   │   │   ├── exception/
+│   │   │   │   ├── GlobalExceptionHandler.java        # @RestControllerAdvice
+│   │   │   │   ├── ResourceNotFoundException.java
+│   │   │   │   └── UnauthorizedException.java
+│   │   │   └── util/
+│   │   │       └── KeysetPaginationHelper.java        # cursor encode/decode
 │   │   └── resources/
-│   │       ├── application.yml                   # base config
-│   │       ├── application-local.yml             # local overrides (gitignored)
-│   │       ├── application-test.yml              # Testcontainers config
+│   │       ├── application.yml                        # main config
+│   │       ├── application-dev.yml                    # local overrides
+│   │       ├── application-prod.yml                   # Railway env overrides
 │   │       └── db/migration/
-│   │           ├── V1__create_users.sql
-│   │           ├── V2__create_notes.sql
-│   │           └── V3__add_notes_indexes.sql
+│   │           ├── V1__create_users_table.sql
+│   │           ├── V2__create_notes_table.sql
+│   │           └── V3__add_indexes.sql
 │   └── test/
-│       └── java/com/notesapi/
-│           ├── controller/                       # @WebMvcTest slices
-│           ├── service/                          # @ExtendWith(MockitoExtension)
-│           └── repository/                       # @DataJpaTest + Testcontainers
-├── docker/
-│   └── Dockerfile                               # multi-stage JDK 21 image
-├── docker-compose.yml                           # local Postgres + Redis
-├── docker-compose.test.yml                      # Testcontainers override
+│       └── java/com/timothylee/notesapi/
+│           ├── controller/
+│           │   ├── AuthControllerTest.java
+│           │   └── NoteControllerTest.java
+│           ├── service/
+│           │   ├── AuthServiceTest.java
+│           │   └── NoteServiceTest.java
+│           └── repository/
+│               └── NoteRepositoryTest.java            # Testcontainers PostgreSQL
+├── Dockerfile                                         # multi-stage JDK 21 image
+├── docker-compose.yml                                 # local Postgres + Redis
 ├── .github/
 │   └── workflows/
-│       └── ci-cd.yml                            # build → test → push → deploy
+│       └── ci-cd.yml                                  # build → test → push → deploy
 ├── pom.xml
+├── railway.toml
+├── .env.example
 └── README.md
 ```
 

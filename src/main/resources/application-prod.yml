@@ -1,0 +1,5 @@
+# Production overrides — all sensitive values injected via Railway environment variables.
+# Do not add secrets here.
+spring:
+  jpa:
+    show-sql: false

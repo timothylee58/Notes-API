@@ -29,6 +29,7 @@ public class NoteService {
                 .user(user)
                 .title(request.title())
                 .content(request.content())
+                .tags(request.tags())
                 .build();
         return NoteResponse.from(noteRepository.save(note));
     }
@@ -64,6 +65,7 @@ public class NoteService {
         var note = findOwned(user, noteId);
         if (request.title() != null) note.setTitle(request.title());
         if (request.content() != null) note.setContent(request.content());
+        if (request.tags() != null) note.setTags(request.tags());
         return NoteResponse.from(noteRepository.save(note));
     }
 

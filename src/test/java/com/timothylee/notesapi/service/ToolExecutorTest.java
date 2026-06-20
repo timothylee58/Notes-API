@@ -50,7 +50,7 @@ class ToolExecutorTest {
 
         String result = toolExecutor.execute("list_notes", Map.of(), userId);
 
-        assertThat(result).contains("Title");
+        assertThat(result).contains("Title").contains("data");
         verify(noteService).getNotes(userId, null, 20);
     }
 

@@ -20,8 +20,10 @@ public class ToolExecutor {
     public String execute(String toolName, Map<String, Object> input, UUID userId) {
         return switch (toolName) {
             case "list_notes" -> {
-                var page = noteService.getNotes(userId, null, 20);
-                yield toJson(page.data());
+                String cursor = input.get("cursor") != null ? input.get("cursor").toString() : null;
+                int limit = input.get("limit") instanceof Number n ? n.intValue() : 20;
+                var page = noteService.getNotes(userId, cursor, Math.min(limit, 100));
+                yield toJson(page);
             }
             case "get_note" -> {
                 var noteId = parseUUID(input, "id");
@@ -51,10 +53,9 @@ public class ToolExecutor {
         return UUID.fromString(val.toString());
     }
 
-    @SuppressWarnings("unchecked")
     private NoteRequest buildNoteRequest(Map<String, Object> input) {
-        String title = (String) input.get("title");
-        String content = (String) input.get("content");
+        String title = input.get("title") != null ? input.get("title").toString() : null;
+        String content = input.get("content") != null ? input.get("content").toString() : null;
         Object rawTags = input.get("tags");
         List<String> tags = rawTags instanceof List<?> l
                 ? l.stream().map(Object::toString).toList()

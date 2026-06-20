@@ -26,8 +26,12 @@ public class AnthropicClient {
     private static final int MAX_TOKENS = 4096;
 
     private static final List<Map<String, Object>> TOOLS = List.of(
-            tool("list_notes", "List all notes for the current user. Returns a list of note summaries.",
-                    Map.of("type", "object", "properties", Map.of(), "required", List.of())),
+            tool("list_notes", "List notes for the current user. Supports keyset pagination via cursor.",
+                    Map.of("type", "object",
+                            "properties", Map.of(
+                                    "limit", Map.of("type", "integer", "description", "Max notes to return (1-100, default 20)"),
+                                    "cursor", Map.of("type", "string", "description", "Pagination cursor from a previous list_notes response")),
+                            "required", List.of())),
             tool("get_note", "Get the full content of a specific note by its ID.",
                     Map.of("type", "object",
                             "properties", Map.of("id", Map.of("type", "string", "description", "The UUID of the note")),

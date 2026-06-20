@@ -142,6 +142,20 @@
             <version>2.2.2</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Rate limiting -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j-core</artifactId>
+            <version>8.10.1</version>
+        </dependency>
+
+        <!-- Anthropic Java SDK -->
+        <dependency>
+            <groupId>com.anthropic</groupId>
+            <artifactId>anthropic-java</artifactId>
+            <version>0.8.0</version>
+        </dependency>
     </dependencies>
 
     <build>

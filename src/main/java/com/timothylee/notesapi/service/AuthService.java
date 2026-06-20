@@ -62,8 +62,13 @@ public class AuthService {
         if (!jwtUtil.isTokenValid(refreshToken, user)) {
             throw new UnauthorizedException("Refresh token is invalid or expired");
         }
+        // Rotate: invalidate old refresh token so it cannot be reused
+        tokenBlacklistService.blacklistToken(
+                jwtUtil.extractJti(refreshToken),
+                jwtUtil.extractExpiration(refreshToken));
         String newAccessToken = jwtUtil.generateAccessToken(user);
-        return AuthResponse.of(newAccessToken, refreshToken, jwtUtil.getAccessTokenExpiryMs());
+        String newRefreshToken = jwtUtil.generateRefreshToken(user);
+        return AuthResponse.of(newAccessToken, newRefreshToken, jwtUtil.getAccessTokenExpiryMs());
     }
 
     private AuthResponse buildAuthResponse(User user) {

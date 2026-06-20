@@ -12,9 +12,10 @@ import java.util.UUID;
 
 public interface NoteRepository extends JpaRepository<Note, UUID> {
 
-    @Query("SELECT n FROM Note n WHERE n.userId = :userId " +
-           "AND (:cursor IS NULL OR n.createdAt < :cursor) " +
-           "ORDER BY n.createdAt DESC LIMIT :limit")
+    @Query(value = "SELECT * FROM notes WHERE user_id = :userId " +
+                   "AND (CAST(:cursor AS timestamptz) IS NULL OR created_at < :cursor) " +
+                   "ORDER BY created_at DESC LIMIT :limit",
+           nativeQuery = true)
     List<Note> findByUserIdWithKeyset(
             @Param("userId") UUID userId,
             @Param("cursor") Instant cursor,

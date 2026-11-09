@@ -175,12 +175,7 @@ public class AnthropicClient {
                 blockNode.put("type", "tool_use");
                 blockNode.put("id", tu.id());
                 blockNode.put("name", tu.name());
-                try {
-                    blockNode.set("input", objectMapper.readTree(tu._input().toString()));
-                } catch (Exception e) {
-                    log.warn("Failed to parse tool input as JSON, using raw string: {}", e.getMessage());
-                    blockNode.put("input", tu._input().toString());
-                }
+                blockNode.set("input", tu._input().convert(JsonNode.class));
             });
 
             if (!blockNode.isEmpty()) {

@@ -24,4 +24,14 @@ public interface NoteRepository extends JpaRepository<Note, UUID> {
     Optional<Note> findByIdAndUserId(UUID id, UUID userId);
 
     void deleteByIdAndUserId(UUID id, UUID userId);
+
+    @Query(value = "SELECT * FROM notes WHERE user_id = :userId " +
+                   "AND fts_vector @@ plainto_tsquery('english', :query) " +
+                   "ORDER BY ts_rank(fts_vector, plainto_tsquery('english', :query)) DESC " +
+                   "LIMIT :limit",
+           nativeQuery = true)
+    List<Note> searchByUserIdAndQuery(
+            @Param("userId") UUID userId,
+            @Param("query") String query,
+            @Param("limit") int limit);
 }

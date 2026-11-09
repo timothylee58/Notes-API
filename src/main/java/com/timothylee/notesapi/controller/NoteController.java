@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -44,6 +45,19 @@ public class NoteController {
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit) {
         return noteService.getNotes(user.getId(), cursor, limit);
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "Full-text search notes", description = "Returns up to `limit` notes matching the search query, ranked by relevance.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Matching notes"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(ref = "#/components/schemas/ProblemDetail")))
+    })
+    public List<NoteResponse> searchNotes(
+            @AuthenticationPrincipal User user,
+            @RequestParam String q,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int limit) {
+        return noteService.searchNotes(user.getId(), q, limit);
     }
 
     @PostMapping

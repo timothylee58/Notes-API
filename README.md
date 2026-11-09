@@ -75,7 +75,8 @@ A production-grade RESTful Notes API built with **Spring Boot 3.x / Java 21**, d
 | Pagination | Keyset cursor on `GET /api/v1/notes` (`cursor`, `limit` params) |
 | Validation | `@Valid`, `@NotBlank`, `@Size` on all request bodies |
 | Error handling | RFC 7807 `ProblemDetail` via `@RestControllerAdvice` |
-| Migrations | Flyway V1–V3 |
+| Search | PostgreSQL full-text search on `GET /api/v1/notes/search?q=` + `search_notes` AI agent tool |
+| Migrations | Flyway V1–V4 |
 | Local dev | Docker + docker-compose (Postgres 16 + Redis 7) |
 | CI | GitHub Actions — build + test on every push/PR to main/develop |
 | Docs | Swagger UI at `/swagger-ui.html` |
@@ -84,7 +85,7 @@ A production-grade RESTful Notes API built with **Spring Boot 3.x / Java 21**, d
 ### v2+ — Out of Scope
 
 - Note sharing / collaboration
-- Full-text search
+- ~~Full-text search~~ (implemented in v1)
 - File attachments
 - Frontend UI
 - Rate limiting
@@ -165,7 +166,8 @@ All authenticated routes require `Authorization: Bearer <access_token>`.
 | `GET` | `/api/v1/notes/{id}` | Bearer | Get single note |
 | `PUT` | `/api/v1/notes/{id}` | Bearer | Update a note |
 | `DELETE` | `/api/v1/notes/{id}` | Bearer | Delete a note |
-| `POST` | `/api/v1/agent/chat` | Bearer | Send a natural-language message to the AI agent; it can list, get, create, update, and delete notes on your behalf |
+| `GET` | `/api/v1/notes/search` | Bearer | Full-text search own notes (`q` query param, optional `limit`) |
+| `POST` | `/api/v1/agent/chat` | Bearer | Send a natural-language message to the AI agent; it can list, get, create, update, delete, and search notes on your behalf |
 
 ---
 

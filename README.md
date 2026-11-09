@@ -165,6 +165,7 @@ All authenticated routes require `Authorization: Bearer <access_token>`.
 | `GET` | `/api/v1/notes/{id}` | Bearer | Get single note |
 | `PUT` | `/api/v1/notes/{id}` | Bearer | Update a note |
 | `DELETE` | `/api/v1/notes/{id}` | Bearer | Delete a note |
+| `POST` | `/api/v1/agent/chat` | Bearer | Send a natural-language message to the AI agent; it can list, get, create, update, and delete notes on your behalf |
 
 ---
 
@@ -179,6 +180,7 @@ All authenticated routes require `Authorization: Bearer <access_token>`.
 | `REDIS_PORT` | `6379` | Redis port |
 | `REDIS_PASSWORD` | _(empty)_ | Redis password (optional) |
 | `JWT_SECRET` | _(changeme)_ | HS256 signing key — min 32 bytes in production |
+| `ANTHROPIC_API_KEY` | _(required for agent)_ | Anthropic API key for the AI agent chat feature |
 
 Copy `.env.example` to get started:
 ```bash

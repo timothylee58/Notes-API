@@ -150,6 +150,28 @@ class NoteServiceTest {
         verify(noteRepository, never()).deleteByIdAndUserId(any(), any());
     }
 
+    @Test
+    void searchNotes_returnsMatchingNotes() {
+        when(noteRepository.searchByUserIdAndQuery(eq(userId), eq("java"), eq(10)))
+                .thenReturn(List.of(note));
+
+        var results = noteService.searchNotes(userId, "java", 10);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).title()).isEqualTo("Test Note");
+        verify(noteRepository).searchByUserIdAndQuery(userId, "java", 10);
+    }
+
+    @Test
+    void searchNotes_clampsLimitTo100() {
+        when(noteRepository.searchByUserIdAndQuery(eq(userId), eq("x"), eq(100)))
+                .thenReturn(List.of());
+
+        noteService.searchNotes(userId, "x", 999);
+
+        verify(noteRepository).searchByUserIdAndQuery(userId, "x", 100);
+    }
+
     private List<Note> buildNotes(UUID ownerId, int count) {
         return java.util.stream.IntStream.range(0, count).mapToObj(i ->
                 Note.builder()

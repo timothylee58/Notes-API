@@ -62,7 +62,13 @@ public class AnthropicClient {
             buildTool("delete_note",
                     "Delete a note by its ID.",
                     Map.of("id", Map.of("type", "string", "description", "The UUID of the note to delete")),
-                    List.of("id"))
+                    List.of("id")),
+            buildTool("search_notes",
+                    "Full-text search across the current user's notes by title and content.",
+                    Map.of(
+                            "q", Map.of("type", "string", "description", "Search query string"),
+                            "limit", Map.of("type", "integer", "description", "Max results to return (1-100, default 20)")),
+                    List.of("q"))
     );
 
     private static Tool buildTool(String name, String description,
@@ -175,12 +181,7 @@ public class AnthropicClient {
                 blockNode.put("type", "tool_use");
                 blockNode.put("id", tu.id());
                 blockNode.put("name", tu.name());
-                try {
-                    blockNode.set("input", objectMapper.readTree(tu._input().toString()));
-                } catch (Exception e) {
-                    log.warn("Failed to parse tool input as JSON, using raw string: {}", e.getMessage());
-                    blockNode.put("input", tu._input().toString());
-                }
+                blockNode.set("input", tu._input().convert(JsonNode.class));
             });
 
             if (!blockNode.isEmpty()) {

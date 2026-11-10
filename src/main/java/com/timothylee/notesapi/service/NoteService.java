@@ -73,6 +73,13 @@ public class NoteService {
         noteRepository.deleteByIdAndUserId(noteId, userId);
     }
 
+    @Transactional(readOnly = true)
+    public List<NoteResponse> searchNotes(UUID userId, String query, int limit) {
+        int clamped = Math.min(Math.max(limit, 1), 100);
+        return noteRepository.searchByUserIdAndQuery(userId, query, clamped)
+                .stream().map(NoteResponse::from).toList();
+    }
+
     private Note findOwned(UUID userId, UUID noteId) {
         return noteRepository.findByIdAndUserId(noteId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Note not found: " + noteId));

@@ -128,4 +128,25 @@ class ToolExecutorTest {
         assertThatThrownBy(() -> toolExecutor.execute("get_note", Map.of("id", noteId.toString()), userId))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
+
+    @Test
+    void search_notes_invokes_searchNotes_with_correct_userId() {
+        when(noteService.searchNotes(eq(userId), eq("spring"), eq(10)))
+                .thenReturn(List.of(sampleNote));
+
+        String result = toolExecutor.execute("search_notes", Map.of("q", "spring", "limit", 10), userId);
+
+        assertThat(result).contains("Title");
+        verify(noteService).searchNotes(userId, "spring", 10);
+    }
+
+    @Test
+    void search_notes_uses_default_limit_when_absent() {
+        when(noteService.searchNotes(eq(userId), eq("spring"), eq(20)))
+                .thenReturn(List.of());
+
+        toolExecutor.execute("search_notes", Map.of("q", "spring"), userId);
+
+        verify(noteService).searchNotes(userId, "spring", 20);
+    }
 }

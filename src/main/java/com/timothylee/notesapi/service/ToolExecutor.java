@@ -43,6 +43,11 @@ public class ToolExecutor {
                 noteService.deleteNote(userId, noteId);
                 yield "deleted";
             }
+            case "search_notes" -> {
+                String q = input.get("q") != null ? input.get("q").toString() : "";
+                int limit = input.get("limit") instanceof Number n ? n.intValue() : 20;
+                yield toJson(noteService.searchNotes(userId, q, Math.min(limit, 100)));
+            }
             default -> throw new IllegalArgumentException("Unknown tool: " + toolName);
         };
     }
